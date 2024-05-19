@@ -45,7 +45,7 @@ const WorkoutPlanner = (props: any) => {
         </Text>
         <TealGradientButton
           title="Get Workout Plan"
-          pressHandler={() => props.navigation.navigate('LastSession')}
+          pressHandler={() => props.navigation.navigate('WorkoutRoutines')}
         />
       </View>
     </SafeAreaView>

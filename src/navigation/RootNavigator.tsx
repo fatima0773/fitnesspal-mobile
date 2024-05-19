@@ -13,6 +13,7 @@ import GenderAnalysis from '../components/screens/onBoarding/GenderAnalysis';
 import HealthGoals from '../components/screens/onBoarding/HealthGoals';
 import ResetPassword from '../components/screens/onBoarding/ResetPassword';
 import TabNavigator from './TabNavigator';
+import StepTracker from '../components/screens/stepTracker/StepTracker';
 const Stack = createStackNavigator();
 
 const RootNavigator: React.FC = () => {
@@ -77,6 +78,11 @@ const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="Tab"
           component={TabNavigator}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="StepTracker"
+          component={StepTracker}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

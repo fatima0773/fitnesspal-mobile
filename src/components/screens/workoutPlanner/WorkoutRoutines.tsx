@@ -12,11 +12,12 @@ import {
 import {AppColors} from '../../../utility/AppColors';
 import {useEffect, useState} from 'react';
 import LogoHeader from '../../common/LogoHeader';
-import ThreeStepProgress from '../../common/ThreeStepProgress';
 import {AppFontStyle} from '../../../styles/AppFontStyle';
 import {FULL_HEIGHT, FULL_WIDTH} from '../../../utility/Constant';
 import SkipNextButton from '../../common/SkipNextButton';
-const ToningAreas = (props: any) => {
+import {Switch} from '@rneui/themed';
+const WorkoutRoutines = (props: any) => {
+  const [checked, setChecked] = useState(false);
   const [selectedOption, setSelectedOption] = useState(0);
   const workoutRoutines = [
     {
@@ -58,75 +59,106 @@ const ToningAreas = (props: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView style={{padding: 15, paddingHorizontal: 25}}>
         <View
           style={{
-            paddingHorizontal: 15,
+            // paddingHorizontal: 15,
             alignItems: 'center',
           }}>
           <LogoHeader />
-          <ThreeStepProgress currentStep={2} />
-          <Text
+        </View>
+
+        {/* <ThreeStepProgress currentStep={2} /> */}
+
+        <Text
+          style={[
+            AppFontStyle.SEMI_BOLD_24,
+            {
+              textAlign: 'left',
+              width: '100%',
+              marginVertical: 20,
+            },
+          ]}>
+          Workout Routines
+        </Text>
+        <Text
+          style={[
+            AppFontStyle.SEMI_BOLD_15,
+            {
+              textAlign: 'left',
+              color: AppColors.secondaryText,
+            },
+          ]}>
+          Tailored exercises for your fitness goals await!
+        </Text>
+
+        {workoutRoutines.map((item, index) => (
+          <TouchableOpacity
+            key={index}
             style={[
-              AppFontStyle.SEMI_BOLD_24,
-              {
-                textAlign: 'left',
-                marginVertical: 20,
-              },
-            ]}>
-            Workout Routines
-          </Text>
-          <Text
-            style={[
-              AppFontStyle.SEMI_BOLD_15,
-              {
-                textAlign: 'left',
-                color: AppColors.secondaryText,
-              },
-            ]}>
-            To ensure we create a workout plan that's effective and safe for
-            you, we need more information about you.
-          </Text>
-          {workoutRoutines.map((item, index) => (
-            <TouchableOpacity
-              key={index}
+              styles.optionContainer,
+              selectedOption === index && styles.selectedOptionContainer,
+            ]}
+            onPress={() => setSelectedOption(index)}>
+            <Text
               style={[
-                styles.optionContainer,
-                selectedOption === index && styles.selectedOptionContainer,
-              ]}
-              onPress={() => setSelectedOption(index)}>
-              <Text
-                style={[
-                  AppFontStyle.SEMI_BOLD_17,
-                  {marginHorizontal: 20},
-                  selectedOption === index && {color: AppColors.white},
-                ]}>
-                {item.name}
-              </Text>
-              <Text
-                style={[
-                  AppFontStyle.MEDIUM_11,
-                  {
-                    marginHorizontal: 20,
-                    color: AppColors.secondaryText,
-                    marginVertical: 2,
-                  },
-                  selectedOption === index && {color: AppColors.white},
-                ]}>
-                {item.desc}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          <SkipNextButton
-            containerStyle={{marginTop: 30}}
-            skipButtonHandler={() =>
-              props.navigation.navigate('WorkoutPlanner')
-            }
-            nextButtonHandler={() =>
-              props.navigation.navigate('WorkoutPlanner')
-            }
+                AppFontStyle.SEMI_BOLD_17,
+                {marginHorizontal: 20},
+                selectedOption === index && {color: AppColors.white},
+              ]}>
+              {item.name}
+            </Text>
+            <Text
+              style={[
+                AppFontStyle.MEDIUM_11,
+                {
+                  marginHorizontal: 20,
+                  color: AppColors.secondaryText,
+                  marginVertical: 2,
+                },
+                selectedOption === index && {color: AppColors.white},
+              ]}>
+              {item.desc}
+            </Text>
+          </TouchableOpacity>
+        ))}
+        <View
+          style={[
+            styles.optionContainer,
+            {
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: 10,
+              backgroundColor: AppColors.lightTeal,
+            },
+          ]}>
+          <Text
+            style={[
+              AppFontStyle.MEDIUM_15,
+              {
+                textAlign: 'left',
+              },
+            ]}>
+            Enable Realtime Feedback
+          </Text>
+          <Switch
+            color={AppColors.teal}
+            value={checked}
+            onValueChange={value => setChecked(value)}
           />
         </View>
+        <SkipNextButton
+          containerStyle={{marginTop: 30}}
+          skipButtonHandler={() => props.navigation.navigate('WorkoutPlanner')}
+          nextButtonHandler={() => {
+            props.navigation.navigate('WorkoutLanding', {
+              selectedRoutine: selectedOption,
+              feedbackEnabled: checked,
+            });
+          }}
+        />
+        <View style={{marginVertical: 20}} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -177,9 +209,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginEnd: 10,
     padding: 10,
-    width: FULL_WIDTH - 60,
+    // width: FULL_WIDTH - 60,
     paddingVertical: 20,
     marginVertical: 10,
+    width: '100%',
   },
   selectedOptionContainer: {
     backgroundColor: AppColors.teal,
@@ -197,4 +230,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ToningAreas;
+export default WorkoutRoutines;

@@ -16,17 +16,16 @@ const GetStarted = (props: any) => {
       <GetStartedCarousal />
       <BlackButton
         pressHandler={async () => {
-          props.navigation.navigate('Tab', {screen: 'Home'});
+          // props.navigation.navigate('Tab', {screen: 'Home'});
           // props.navigation.navigate('SignIn');
+
           const auth = await storage.load({
             key: 'authState',
             autoSync: true,
             syncInBackground: true,
           });
-          // console.log(auth);
-          // props.navigation.navigate('SignIn');
-          if (auth) {
-            // props.navigation.navigate('SignIn');
+          if (auth.userId === '') {
+            props.navigation.navigate('SignIn');
           } else {
             props.navigation.navigate('Tab', {screen: 'Home'});
           }

@@ -23,7 +23,7 @@ import {signIn} from '../../../services/auth.services';
 import {FULL_WIDTH} from '../../../utility/Constant';
 
 const SignIn = (props: any) => {
-  const [email, setEmail] = useState('fatima.z0773@gmail.com');
+  const [email, setEmail] = useState('fatima.z0774@gmail.com');
   const [password, setPassword] = useState('Test@123');
 
   const [showError, setShowError] = useState(false);

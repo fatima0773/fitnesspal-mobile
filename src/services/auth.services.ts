@@ -65,6 +65,7 @@ export const registerUser = async ({
         userId: response.data.userId,
       },
     });
+
     // Cookies.set('authState', 'signedIn');
     // Cookies.set('userId', response.data.userId);
     return response;
@@ -107,7 +108,6 @@ export const signIn = async ({
     const response = await axios.post(`${API_URL}user/signin`, {
       email,
       password,
-      // token: userToken,
     });
     // Cookies.set('authState', 'signedIn');
     // Cookies.set('userId', response.data.userId);
@@ -117,6 +117,7 @@ export const signIn = async ({
         userId: response.data.userId,
       },
     });
+    console.log(response.data.userId);
     console.log('djskjds');
     // console.log(response.message);
     return response;

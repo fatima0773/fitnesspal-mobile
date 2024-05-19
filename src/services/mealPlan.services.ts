@@ -20,6 +20,7 @@ export const generateMealPlan = async (health: any, diet: any) => {
       meals: ['Breakfast', 'Lunch', 'Dinner'],
       diet: diet,
     });
+
     return response;
   } catch (error) {
     throw error;

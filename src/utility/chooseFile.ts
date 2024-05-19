@@ -6,7 +6,7 @@ import {
 export const chooseFile = (
   type: any,
   numberOfPhotos: number,
-  callback: (uris: string[]) => void,
+  callback: (uris: string) => void,
 ) => {
   let options = {
     mediaType: type,
@@ -14,8 +14,8 @@ export const chooseFile = (
     maxHeight: 300,
     quality: 1,
     presentationStyle: 'popover',
-    selection: numberOfPhotos,
-    selectionLimit: numberOfPhotos,
+    selection: 1,
+    selectionLimit: 1,
     // base64: true,
   };
 
@@ -29,8 +29,10 @@ export const chooseFile = (
     } else if (response.errorCode === 'others') {
       console.log(response.errorMessage);
     } else if (response.assets !== undefined) {
-      const imageUris = response.assets.map(asset => asset);
-      callback(imageUris);
+      const imageUri = response.assets[0].uri;
+      callback(imageUri);
+    } else {
+      callback(''); // No file selected, pass null to callback
     }
   });
 };

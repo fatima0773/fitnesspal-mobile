@@ -1,4 +1,14 @@
 export const AppColors = {
+  // #6DDD91
+  // #BE9FFD
+  // rgba(190, 159, 253, 0.25)
+  // #00D2C4
+  // rgba(0, 210, 196, 0.1)
+  // #FE9CFF
+  // rgba(254, 156, 255, 0.23)
+  // #FFC6B2
+  // rgba(255, 198, 178, 0.19)
+
   black: '#000000',
   white: '#FFFFFF',
   purple: '#BE9FFD',

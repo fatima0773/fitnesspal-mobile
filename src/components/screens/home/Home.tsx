@@ -1,6 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
-import {LogBox, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import {
+  LogBox,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import styleSheet from '../../../utility/stylesheet';
 import {AppColors} from '../../../utility/AppColors';
 import HomeHeader from './components/HomeHeader';
@@ -15,19 +22,48 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import TodaysMeals from './components/TodaysMeals';
 import PopularRecipes from './components/PopularRecipes';
 import {useEffect} from 'react';
+import storage from '../../../utility/Storage';
 const Home = (props: any) => {
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
   }, []);
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity
+        onPress={() => props.navigation.navigate('StepTracker')}
+        style={{
+          paddingHorizontal: 20,
+          paddingVertical: 10,
+          borderRadius: 200,
+          backgroundColor: AppColors.purple,
+          position: 'absolute',
+          bottom: 10,
+          zIndex: 10000,
+          right: 10,
+        }}>
+        <Text style={[AppFontStyle.BOLD_19, {color: AppColors.white}]}>
+          Step Tracker
+        </Text>
+      </TouchableOpacity>
+
       <ScrollView
         style={{width: '100%', height: '100%'}}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}>
         <View style={[styleSheet.container, {padding: 15}]}>
           <HomeHeader
-            pressHandler={() => props.navigation.navigate('GetStarted')}
+            pressHandler={() => {
+              // storage.remove({
+              //   key: 'authState',
+              // });
+              storage.save({
+                key: 'authState',
+                data: {
+                  userId: '',
+                },
+              });
+              props.navigation.navigate('GetStarted');
+            }}
           />
           <Text
             style={[

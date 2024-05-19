@@ -20,13 +20,24 @@ import TealGradientButton from '../../common/TealGradientButton';
 import {AppImages} from '../../../utility/AppImages';
 import {FULL_WIDTH} from '../../../utility/Constant';
 import axios from 'axios';
+import storage from '../../../utility/Storage';
 const MealPlanLanding = (props: any) => {
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+    getMealPlan();
+  }, []);
+
+  const getMealPlan = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    const userId = auth.userId;
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'http://localhost:8080/meal-plan/663c0c5cdcadc714ac84e047',
+      url: `http://localhost:8080/meal-plan/${userId}`,
       headers: {},
     };
 
@@ -34,7 +45,7 @@ const MealPlanLanding = (props: any) => {
       .request(config)
       .then(response => {
         console.log(JSON.stringify(response.data));
-        if (response.data.status_code) {
+        if (response.data.status_code === 200) {
           props.navigation.navigate('MealPlan');
         } else {
           props.navigation.navigate('MealPlannerLanding');
@@ -43,7 +54,7 @@ const MealPlanLanding = (props: any) => {
       .catch(error => {
         console.log(error);
       });
-  }, []);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView

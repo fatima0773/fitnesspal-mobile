@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
@@ -21,13 +22,17 @@ import TealGradientButton from '../../common/TealGradientButton';
 import storage from '../../../utility/Storage';
 import {API_URL} from '../../../config/config';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {chooseFile} from '../../../utility/chooseFile';
+import {
+  ImagePickerResponse,
+  launchCamera,
+  launchImageLibrary,
+} from 'react-native-image-picker';
 interface mealPlanTracker {
   Breakfast: number[];
   Lunch: number[];
   Dinner: number[];
 }
-const MealPlan = () => {
+const MealPlan = (props: any) => {
   const [mealPlan, setMealPlan] = useState<any>();
   const [mealPlanTracker, setMealPlanTracker] = useState<mealPlanTracker>();
   const [openMealModal, setOpenMealModal] = useState(false);
@@ -56,7 +61,6 @@ const MealPlan = () => {
   const handleDaySelect = (day: any) => {
     setSelectedDay(day);
   };
-
   const onComplete = async (
     mealType: string,
     calories: number,
@@ -408,59 +412,103 @@ const MealPlan = () => {
     );
   };
 
-  const [selectedImage, setSelectedImage] = useState<any>([]);
+  const [selectedImage, setSelectedImage] = useState<any>();
 
   const [openImageScannerRes, setOpenImageScannerRes] = useState(false);
 
   const [scannerRes, setScannerRes] = useState<any>();
-  const [count, setCount] = useState(0);
-
-  const handleImageScanner = () => {
-    let data;
-    if (count === 1) {
-      data = JSON.stringify({
-        image_path:
-          '/Users/fatima/Desktop/fitnesspal-flask-backend/image/2.jpg',
-      });
-    } else {
-      data = JSON.stringify({
-        image_path:
-          '/Users/fatima/Desktop/fitnesspal-flask-backend/image/1.jpg',
-      });
-    }
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'http://127.0.0.1:5000/extract-data',
+  const uploadToCloudinary = async (image: any) => {
+    const data = new FormData();
+    data.append('file', {
+      uri: image.uri,
+      type: image.type,
+      name: image.fileName,
+    });
+    data.append('upload_preset', 'ml_default');
+    data.append('cloud_name', 'dzhnq0tli');
+    await fetch('https://api.cloudinary.com/v1_1/dzhnq0tli/upload', {
+      method: 'POST',
+      body: data,
       headers: {
-        'Content-Type': 'application/json',
+        'content-type': 'multipart/form-data',
       },
-      data: data,
-    };
-
-    async function makeRequest() {
-      try {
-        const response = await axios.request(config);
-        setScannerRes(response.data);
-        setOpenImageScannerRes(true);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    makeRequest();
+    })
+      .then(res => {
+        return res.json();
+      })
+      .then((data: any) => {
+        let ocrData = JSON.stringify({
+          image_path: data.secure_url,
+        });
+        let config = {
+          method: 'post',
+          maxBodyLength: Infinity,
+          url: 'http://127.0.0.1:5000/extract-data',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          data: ocrData,
+        };
+        makeRequest(config);
+        setUploadedImageUrl(data.secure_url);
+        return data.secure_url;
+      })
+      .catch(error => {
+        console.error('Error uploading image to Cloudinary:', error);
+      });
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>();
+  const handleImageScanner = async (imageUri: any) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const uploadedImage = await uploadToCloudinary(imageUri);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+    }
+  };
+
+  const makeRequest = async (config: any) => {
+    try {
+      const response = await axios.request(config);
+      setScannerRes(response.data);
+      setOpenImageScannerRes(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  let options = {
+    mediaType: 'photo',
+    maxWidth: 300,
+    maxHeight: 300,
+    quality: 1,
+    presentationStyle: 'popover',
+    selection: 1,
+    selectionLimit: 1,
+  };
+
+  const [openImagePicker, setOpenImagePicker] = useState(false);
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
         onPress={() => {
-          setCount(count + 1);
-          chooseFile('photo', 1, (uris: string[]) => {
-            setSelectedImage(uris);
-            handleImageScanner();
-          });
-          console.log(selectedImage);
+          //   launchImageLibrary(options, (response: ImagePickerResponse) => {
+          //     if (response.didCancel) {
+          //       console.log('User cancelled camera picker');
+          //     } else if (response.errorCode === 'camera_unavailable') {
+          //       console.log('Camera not available on device');
+          //     } else if (response.errorCode === 'permission') {
+          //       console.log('Permission not satisfied');
+          //     } else if (response.errorCode === 'others') {
+          //       console.log(response.errorMessage);
+          //     } else if (response.assets !== undefined) {
+          //       setSelectedImage(response.assets[0]);
+          //       handleImageScanner(response.assets[0]);
+          //     }
+          //   });
+          setOpenImagePicker(true);
         }}
         style={{
           position: 'absolute',
@@ -487,16 +535,39 @@ const MealPlan = () => {
         contentContainerStyle={{
           alignItems: 'center',
         }}>
-        <Text style={AppFontStyle.SEMI_BOLD_28}>Meal Planner</Text>
-        <View style={{width: '100%', marginTop: 25}}>
-          <Text style={AppFontStyle.SEMI_BOLD_20}>Hello Fatima</Text>
-          <Text
-            style={[
-              AppFontStyle.SEMI_BOLD_12,
-              {marginVertical: 10, color: AppColors.primaryText},
-            ]}>
-            Your Tailored Meal Plan Awaits! Let's Dig In
-          </Text>
+        <Text style={AppFontStyle.SEMI_BOLD_28}>Meal Plan</Text>
+        <View
+          style={{
+            width: '100%',
+            marginTop: 25,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <View style={{flex: 1, marginRight: 10, justifyContent: 'center'}}>
+            <Text style={AppFontStyle.SEMI_BOLD_20}>Hello Fatima</Text>
+            <Text
+              style={[
+                AppFontStyle.SEMI_BOLD_12,
+                {marginVertical: 10, color: AppColors.primaryText},
+              ]}>
+              Your Tailored Meal Plan Awaits! Let's Dig In
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => props.navigation.navigate('WaterIntake')}
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 200,
+              backgroundColor: '#8FBBEF',
+              zIndex: 10000,
+              alignSelf: 'flex-start',
+            }}>
+            <Text style={[AppFontStyle.BOLD_14, {color: AppColors.white}]}>
+              Water Tracker
+            </Text>
+          </TouchableOpacity>
         </View>
         {mealPlan && (
           <>
@@ -622,9 +693,9 @@ const MealPlan = () => {
             <Text style={[AppFontStyle.SEMI_BOLD_14]}>
               Here are the extracted results from the nutritional table
             </Text>
-            {selectedImage && selectedImage[0] && selectedImage[0].uri && (
+            {selectedImage && selectedImage && selectedImage.uri && (
               <Image
-                source={{uri: selectedImage[0].uri}}
+                source={{uri: selectedImage.uri}}
                 resizeMode="contain"
                 style={{
                   width: 300,
@@ -642,6 +713,85 @@ const MealPlan = () => {
                   </Text>
                 </View>
               ))}
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        onBackdropPress={() => setOpenImagePicker(false)}
+        isVisible={openImagePicker}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        swipeDirection="up"
+        style={{
+          margin: 0,
+        }}>
+        <View style={[styles.modalContainer]}>
+          <View
+            style={[
+              styles.modalContentWrapper,
+              {height: '60%', alignItems: 'center', marginTop: 30},
+            ]}>
+            <Text
+              style={[
+                AppFontStyle.BOLD_24,
+                {color: AppColors.teal, textAlign: 'center'},
+              ]}>
+              Track Your Calories
+            </Text>
+            <Text style={[AppFontStyle.MEDIUM_14, {marginVertical: 10}]}>
+              Easily Track Your Calories: Scan, Snap, or Add
+            </Text>
+            <TealGradientButton
+              title="Open Camera"
+              pressHandler={() => {
+                setOpenImagePicker(false);
+                launchCamera(options, (response: ImagePickerResponse) => {
+                  if (response.didCancel) {
+                    console.log('User cancelled camera picker');
+                  } else if (response.errorCode === 'camera_unavailable') {
+                    console.log('Camera not available on device');
+                  } else if (response.errorCode === 'permission') {
+                    console.log('Permission not satisfied');
+                  } else if (response.errorCode === 'others') {
+                    console.log(response.errorMessage);
+                  } else if (response.assets !== undefined) {
+                    setSelectedImage(response.assets[0]);
+                    handleImageScanner(response.assets[0]);
+                  }
+                });
+              }}
+            />
+            <TealGradientButton
+              title="Open Gallery"
+              pressHandler={() => {
+                setOpenImagePicker(false);
+                launchImageLibrary(options, (response: ImagePickerResponse) => {
+                  if (response.didCancel) {
+                    console.log('User cancelled camera picker');
+                  } else if (response.errorCode === 'camera_unavailable') {
+                    console.log('Camera not available on device');
+                  } else if (response.errorCode === 'permission') {
+                    console.log('Permission not satisfied');
+                  } else if (response.errorCode === 'others') {
+                    console.log(response.errorMessage);
+                  } else if (response.assets !== undefined) {
+                    setSelectedImage(response.assets[0]);
+                    handleImageScanner(response.assets[0]);
+                  }
+                });
+              }}
+            />
+
+            <Text style={[AppFontStyle.BOLD_24, {color: AppColors.teal}]}>
+              OR
+            </Text>
+            <Text
+              style={[
+                AppFontStyle.MEDIUM_14,
+                {marginVertical: 10, textAlign: 'center'},
+              ]}>
+              Take Control of Your Nutrition: Explore, Input, Transform
+            </Text>
           </View>
         </View>
       </Modal>

@@ -4,6 +4,8 @@ import WorkoutPlanner from '../components/screens/workoutPlanner/WorkoutPlanner'
 import LastSession from '../components/screens/workoutPlanner/LastSession';
 import ToningAreas from '../components/screens/workoutPlanner/ToningAreas';
 import WorkoutLevel from '../components/screens/workoutPlanner/WorkoutLevel';
+import WorkoutRoutines from '../components/screens/workoutPlanner/WorkoutRoutines';
+import WorkoutLanding from '../components/screens/workoutPlanner/WorkoutLanding';
 const Stack = createStackNavigator();
 
 const WorkoutPlanNavigator: React.FC = () => {
@@ -12,6 +14,16 @@ const WorkoutPlanNavigator: React.FC = () => {
       <Stack.Screen
         name="WorkoutPlanner"
         component={WorkoutPlanner}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="WorkoutRoutines"
+        component={WorkoutRoutines}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="WorkoutLanding"
+        component={WorkoutLanding}
         options={{headerShown: false}}
       />
       <Stack.Screen
