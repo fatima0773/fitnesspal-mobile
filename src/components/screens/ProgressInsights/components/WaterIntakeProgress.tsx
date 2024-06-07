@@ -1,16 +1,18 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {LogBox, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {AppColors} from '../../../../utility/AppColors';
 import {AppFontStyle} from '../../../../styles/AppFontStyle';
-import {LineChart} from 'react-native-chart-kit';
-import {FULL_WIDTH} from '../../../../utility/Constant';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePicker, {DateType} from 'react-native-ui-datepicker';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styleSheet from '../../../../utility/stylesheet';
+import storage from '../../../../utility/Storage';
+import axios from 'axios';
 
 const WaterIntakeProgress = () => {
   const [selectedDate, setSelectedDate] = React.useState<{
@@ -19,6 +21,75 @@ const WaterIntakeProgress = () => {
 
   const [timePicker, setTimePicker] = useState(false);
   const [showCalendar, setShowCalendar] = useState(true);
+  const [userId, setUserId] = useState('');
+  const [todaysWaterIntake, setTodaysWaterIntake] = useState<any>();
+
+  const [waterIntake, setWaterIntake] = useState<any>();
+  useEffect(() => {
+    LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+    fetchUserId();
+  }, [userId]);
+
+  const fetchUserId = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    setUserId(auth.userId);
+    getDailyWaterIntake();
+  };
+
+  const formatDate = (d: any) => {
+    const dateObj = new Date(d);
+    const year = dateObj.getFullYear();
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const day = dateObj.getDate().toString().padStart(2, '0');
+
+    const formattedDate = `${year}-${month}-${day}`;
+    return formattedDate;
+  };
+
+  const getWaterIntake = async (date: string) => {
+    let data = '';
+
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/nutritional-profile/get-water-intake-history/${userId}/${date}`,
+      headers: {},
+      data: data,
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        setWaterIntake(response.data);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
+  };
+
+  const getDailyWaterIntake = async () => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/nutritional-profile/get-daily-water-intake/${userId}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    try {
+      const response = await axios.request(config);
+      setTodaysWaterIntake(parseInt(response.data.data.waterIntake, 10));
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <View style={[styles.shadowContainer]}>
       <View style={styleSheet.rowContainer}>
@@ -45,7 +116,9 @@ const WaterIntakeProgress = () => {
               ]}>
               Today’s Water Intake
             </Text>
-            <Text style={AppFontStyle.SEMI_BOLD_15}>6/8 Cups</Text>
+            <Text style={AppFontStyle.SEMI_BOLD_15}>
+              {todaysWaterIntake}/8 Cups
+            </Text>
           </View>
         </View>
         <TouchableOpacity
@@ -81,6 +154,8 @@ const WaterIntakeProgress = () => {
             timePicker={timePicker}
             onChange={params => {
               setSelectedDate(params);
+              const d = formatDate(params.date);
+              getWaterIntake(d);
             }}
             headerButtonColor={AppColors.teal}
             selectedItemColor={AppColors.teal}
@@ -94,29 +169,32 @@ const WaterIntakeProgress = () => {
           />
           {/* STEPS */}
           <View style={styles.separator} />
-
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              Total Water Intake
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              5/8 Cups
-            </Text>
-          </View>
+          {waterIntake && (
+            <>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  Total Water Intake
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {waterIntake.waterIntake}/8 Cups
+                </Text>
+              </View>
+            </>
+          )}
         </>
       )}
     </View>

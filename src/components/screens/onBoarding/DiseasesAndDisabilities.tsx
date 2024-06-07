@@ -38,11 +38,11 @@ const DiseasesAndDisabilities = (props: any) => {
   const [disabilityOpen, setDisabilityOpen] = useState(false);
   const [subDisabilityOpen, setSubDisabilityOpen] = useState(false);
 
-  const [disease, setDisease] = useState(0);
-  const [subdisease, setSubDisease] = useState(-1);
+  const [disease, setDisease] = useState(1);
+  const [subdisease, setSubDisease] = useState(1);
 
-  const [disability, setDisability] = useState(0);
-  const [subdisability, setSubDisability] = useState(-1);
+  const [disability, setDisability] = useState(1);
+  const [subdisability, setSubDisability] = useState(1);
 
   const [diseaseOptions, setDiseaseOptions] = useState(diseases);
   const [subDiseaseOptions, setSubDiseaseOptions] = useState(

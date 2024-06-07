@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
 import {LogBox, SafeAreaView, StyleSheet, Text, View} from 'react-native';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
 import styleSheet from '../../../utility/stylesheet';
 import {AppFontStyle} from '../../../styles/AppFontStyle';
@@ -14,11 +15,59 @@ import WaterIntakeProgress from './components/WaterIntakeProgress';
 import CompareProgress from './components/CompareProgress';
 import CalorieCount from './components/CalorieCount';
 import Activity from './components/Activity';
+import storage from '../../../utility/Storage';
+import axios from 'axios';
+import React from 'react';
 
 const ProgressInsights = (props: any) => {
+  const [userId, setUserId] = useState('');
+  const [currentWeight, setCurrentWeight] = useState<any>();
+  const [targetWeight, setTargetWeight] = useState<any>();
+  const [bmi, setBmi] = useState<any>();
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
-  }, []);
+    fetchUserId();
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      getHealthProfile();
+    }
+  }, [userId]);
+
+  const getHealthProfile = async () => {
+    let data = '';
+
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/health-profile/get-profile/${userId}`,
+      headers: {},
+      data: data,
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        setTargetWeight(response.data.targetWeight);
+        setCurrentWeight(response.data.weight);
+        setBmi(response.data.bmi);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
+  };
+
+  const fetchUserId = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    setUserId(auth.userId);
+  };
   return (
     <View style={[styles.container]}>
       <ScrollView
@@ -37,7 +86,11 @@ const ProgressInsights = (props: any) => {
           </Text>
 
           {/* Weight - BMI - Target Weight  */}
-          <View style={[styleSheet.rowContainer, {marginTop: 20}]}>
+          <View
+            style={[
+              styleSheet.rowContainer,
+              {marginTop: 20, width: '90%', alignSelf: 'center'},
+            ]}>
             <LinearGradient
               start={{x: 0.1, y: 0.25}}
               end={{x: 0.9, y: 1.0}}
@@ -48,7 +101,7 @@ const ProgressInsights = (props: any) => {
                   AppFontStyle.BOLD_18,
                   {color: AppColors.white, width: '100%', textAlign: 'center'},
                 ]}>
-                48 kgs
+                {currentWeight} kgs
               </Text>
               <Text
                 style={[
@@ -73,7 +126,7 @@ const ProgressInsights = (props: any) => {
                   AppFontStyle.BOLD_18,
                   {color: AppColors.white, width: '100%', textAlign: 'center'},
                 ]}>
-                18 kgs/m2
+                {bmi} kgs/m2
               </Text>
               <Text
                 style={[
@@ -98,7 +151,7 @@ const ProgressInsights = (props: any) => {
                   AppFontStyle.BOLD_18,
                   {color: AppColors.white, width: '100%', textAlign: 'center'},
                 ]}>
-                52 kgs
+                {targetWeight} kgs
               </Text>
               <Text
                 style={[
@@ -147,7 +200,7 @@ const ProgressInsights = (props: any) => {
                   marginVertical: 10,
                 },
               ]}>
-              18.5 kg/m2
+              {bmi} kg/m2
             </Text>
           </View>
           <View style={[styleSheet.rowContainer, {paddingHorizontal: 20}]}>
@@ -170,10 +223,10 @@ const ProgressInsights = (props: any) => {
                   marginVertical: 10,
                 },
               ]}>
-              18.5 kg/m2 - 18.5 kg/m2
+              18.5 kg/m² - 24.9 kg/m²
             </Text>
           </View>
-          <View style={[styleSheet.rowContainer, {paddingHorizontal: 20}]}>
+          {/* <View style={[styleSheet.rowContainer, {paddingHorizontal: 20}]}>
             <Text
               style={[
                 AppFontStyle.MEDIUM_12,
@@ -195,56 +248,15 @@ const ProgressInsights = (props: any) => {
               ]}>
               47.4 kg - 64 kg
             </Text>
-          </View>
+          </View> */}
         </View>
 
         <View style={[styleSheet.container, {padding: 15}]}>
-          {/* health risk prediction */}
-          <View
-            style={[
-              styles.shadowContainer,
-              {backgroundColor: AppColors.lightTeal, padding: 20},
-            ]}>
-            <Text
-              style={[
-                AppFontStyle.SEMI_BOLD_20,
-                {
-                  marginVertical: 15,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              Health Risk Prediction
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  color: AppColors.accentText,
-                },
-              ]}>
-              The predicted health risks provided are based on an algorithmic
-              analysis of input data and general health trends. Individual
-              results may vary, and professional medical advice is recommended
-              for personalized guidance and treatment.
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  color: AppColors.accentText,
-                  textAlign: 'right',
-                  textDecorationLine: 'underline',
-                  marginTop: 15,
-                },
-              ]}>
-              See Prediction
-            </Text>
-          </View>
           {/* compare progres */}
           <CompareProgress />
 
           {/* step progress */}
-          <Text
+          {/* <Text
             style={[
               AppFontStyle.SEMI_BOLD_20,
               {
@@ -257,7 +269,7 @@ const ProgressInsights = (props: any) => {
             ]}>
             Step Progress
           </Text>
-          <StepProgress />
+          <StepProgress /> */}
 
           {/* water intake progress */}
           <Text
@@ -292,7 +304,7 @@ const ProgressInsights = (props: any) => {
           <CalorieCount />
 
           {/* water intake progress */}
-          <Text
+          {/* <Text
             style={[
               AppFontStyle.SEMI_BOLD_24,
               {
@@ -305,7 +317,7 @@ const ProgressInsights = (props: any) => {
             ]}>
             Activity
           </Text>
-          <Activity />
+          <Activity /> */}
         </View>
       </ScrollView>
     </View>
@@ -328,10 +340,9 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   gradientContainer: {
-    padding: 5,
+    padding: 10,
     borderRadius: 10,
-    flex: 1,
-    marginEnd: 8,
+    marginEnd: 10,
     alignSelf: 'center',
     justifyContent: 'center',
     paddingVertical: 20,

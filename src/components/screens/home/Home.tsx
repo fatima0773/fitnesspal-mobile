@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
 import {
@@ -21,12 +22,118 @@ import GetBackToTraining from './components/GetBackToTraining';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import TodaysMeals from './components/TodaysMeals';
 import PopularRecipes from './components/PopularRecipes';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import storage from '../../../utility/Storage';
+import axios from 'axios';
+import React from 'react';
 const Home = (props: any) => {
+  const [currentDate, setCurrentDate] = useState('');
+  const [recipes, setRecipes] = useState<any>();
+  const [userId, setUserId] = useState('');
+  const [currentWeight, setCurrentWeight] = useState<any>();
+  const [targetWeight, setTargetWeight] = useState<any>();
+  const [bmi, setBmi] = useState<any>();
+
+  const getFormattedDate = (date: any) => {
+    const day = date.getDate();
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const monthIndex = date.getMonth();
+    const monthName = monthNames[monthIndex];
+    const suffix =
+      day === 1 || day === 21 || day === 31
+        ? 'st'
+        : day === 2 || day === 22
+        ? 'nd'
+        : day === 3 || day === 23
+        ? 'rd'
+        : 'th';
+    return `${day}${suffix} ${monthName}`;
+  };
+
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
-  }, []);
+    getRecipes();
+    const today = new Date();
+    const formattedDate = getFormattedDate(today);
+    setCurrentDate(formattedDate);
+    fetchUserId();
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) {
+      getHealthProfile();
+    }
+  }, [userId]);
+
+  const getHealthProfile = async () => {
+    let data = '';
+
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/health-profile/get-profile/${userId}`,
+      headers: {},
+      data: data,
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        setTargetWeight(response.data.targetWeight);
+        setCurrentWeight(response.data.weight);
+        setBmi(response.data.bmi);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
+  };
+
+  const fetchUserId = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    setUserId(auth.userId);
+  };
+
+  const getRecipes = async () => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: 'https://api.edamam.com/api/recipes/v2?type=public&q=healthy&app_id=f2dfeeb3&app_key=e1a3d5cf81cb3d782e6d100027571564 \t&diet=balanced',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        setRecipes(response.data.hits);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
@@ -53,9 +160,6 @@ const Home = (props: any) => {
         <View style={[styleSheet.container, {padding: 15}]}>
           <HomeHeader
             pressHandler={() => {
-              // storage.remove({
-              //   key: 'authState',
-              // });
               storage.save({
                 key: 'authState',
                 data: {
@@ -73,7 +177,7 @@ const Home = (props: any) => {
                 width: '100%',
               },
             ]}>
-            Let’s see 4th Feb at a glance
+            Let’s see {currentDate} at a glance
           </Text>
 
           {/* at a glance stats */}
@@ -88,7 +192,7 @@ const Home = (props: any) => {
                   AppFontStyle.BOLD_20,
                   {color: AppColors.white, width: '100%', textAlign: 'center'},
                 ]}>
-                48 kgs
+                {currentWeight} kgs
               </Text>
               <Text
                 style={[
@@ -113,7 +217,7 @@ const Home = (props: any) => {
                   AppFontStyle.BOLD_20,
                   {color: AppColors.white, width: '100%', textAlign: 'center'},
                 ]}>
-                18 kgs/m2
+                {bmi} kgs/m2
               </Text>
               <Text
                 style={[
@@ -138,7 +242,7 @@ const Home = (props: any) => {
                   AppFontStyle.BOLD_20,
                   {color: AppColors.white, width: '100%', textAlign: 'center'},
                 ]}>
-                52 kgs
+                {targetWeight} kgs
               </Text>
               <Text
                 style={[
@@ -179,18 +283,8 @@ const Home = (props: any) => {
           {/* weekly stats */}
           <View style={[styleSheet.rowContainer, {marginTop: 50}]}>
             <Text style={AppFontStyle.SEMI_BOLD_18}>Weekly Activity</Text>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_14,
-                {
-                  marginEnd: 10,
-                  color: AppColors.teal,
-                  textDecorationLine: 'underline',
-                },
-              ]}>
-              View all
-            </Text>
           </View>
+
           <WeeklyActivity />
 
           {/* get back to training */}
@@ -204,7 +298,13 @@ const Home = (props: any) => {
               }}
             />
           </View>
-          <GetBackToTraining />
+          <GetBackToTraining
+            pressHandler={() =>
+              props.navigation.navigate('WorkoutPlanNavigator', {
+                screen: 'WorkoutRoutines',
+              })
+            }
+          />
 
           {/* today's meals */}
           <View style={[styleSheet.rowContainer, {marginTop: 50}]}>
@@ -217,21 +317,21 @@ const Home = (props: any) => {
               }}
             />
           </View>
-          <TodaysMeals />
+          <TodaysMeals
+            pressHandler={() =>
+              props.navigation.navigate('MealPlanNavigator', {
+                screen: 'MealPlan',
+              })
+            }
+          />
 
           {/* popular recipes */}
           <View style={[styleSheet.rowContainer, {marginTop: 50}]}>
             <Text style={AppFontStyle.SEMI_BOLD_18}>Popular Recipes</Text>
-            <AntDesign
-              size={28}
-              name="arrowright"
-              style={{
-                marginEnd: 10,
-              }}
-            />
           </View>
-          <PopularRecipes />
+          <PopularRecipes data={recipes} />
         </View>
+        <View style={{marginVertical: 50}} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -262,7 +362,6 @@ const styles = StyleSheet.create({
   gradientContainer: {
     padding: 10,
     borderRadius: 10,
-    flex: 1,
     marginEnd: 10,
     alignSelf: 'center',
     justifyContent: 'center',

@@ -16,13 +16,13 @@ const MenuPageHeader = (props: any) => {
         resizeMode="contain"
       />
       <View style={{flex: 1, marginLeft: 20, justifyContent: 'center'}}>
-        <Text style={AppFontStyle.SEMI_BOLD_18}>Fatima Tuzzahra</Text>
+        <Text style={AppFontStyle.SEMI_BOLD_18}>{props.name}</Text>
         <Text
           style={[
             AppFontStyle.MEDIUM_12,
             {color: AppColors.secondaryText, marginVertical: 8},
           ]}>
-          fatima.z0773@gmail.com
+          {props.email}
         </Text>
       </View>
 

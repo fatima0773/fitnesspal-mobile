@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {LogBox, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {AppColors} from '../../../../utility/AppColors';
 import {AppFontStyle} from '../../../../styles/AppFontStyle';
-import {LineChart} from 'react-native-chart-kit';
-import {FULL_WIDTH} from '../../../../utility/Constant';
-import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePicker, {DateType} from 'react-native-ui-datepicker';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styleSheet from '../../../../utility/stylesheet';
+import storage from '../../../../utility/Storage';
+import axios from 'axios';
 
 const CompareProgress = () => {
   const [date, setDate] = useState<DateType | undefined>();
+  const [userId, setUserId] = useState('');
   const [range, setRange] = React.useState<{
     startDate: DateType;
     endDate: DateType;
@@ -21,6 +21,54 @@ const CompareProgress = () => {
 
   const [timePicker, setTimePicker] = useState(false);
   const [compareProgress, setCompareProgress] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [startComparison, setStartComparison] = useState<any>();
+  const [endComparison, setEndComparison] = useState<any>();
+
+  useEffect(() => {
+    LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+    fetchUserId();
+  }, [userId]);
+
+  const fetchUserId = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    setUserId(auth.userId);
+  };
+
+  const formatDate = (d: any) => {
+    const dateObj = new Date(d);
+    const year = dateObj.getFullYear();
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const day = dateObj.getDate().toString().padStart(2, '0');
+
+    const formattedDate = `${year}-${month}-${day}`;
+
+    console.log(formattedDate);
+    return formattedDate;
+  };
+
+  const getComparison = async (start: string, end: string) => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/nutritional-profile/get-comparison/${userId}/${start}/${end}`,
+      headers: {},
+    };
+
+    try {
+      const response = await axios.request(config);
+      console.log(JSON.stringify(response.data));
+      setStartComparison(response.data.startDate);
+      setEndComparison(response.data.endDate);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <View style={[styles.shadowContainer]}>
       <View style={styleSheet.rowContainer}>
@@ -63,7 +111,7 @@ const CompareProgress = () => {
       {compareProgress && (
         <>
           <DateTimePicker
-            mode={'multiple'}
+            mode={'range'}
             date={date}
             startDate={range.startDate}
             endDate={range.endDate}
@@ -72,6 +120,13 @@ const CompareProgress = () => {
             timePicker={timePicker}
             onChange={params => {
               setRange(params);
+              console.log(params);
+              const start = formatDate(params.startDate);
+              const end = formatDate(params.endDate);
+              setStartDate(start);
+              setEndDate(end);
+              console.log(end, start);
+              getComparison(start, end);
             }}
             headerButtonColor={AppColors.teal}
             selectedItemColor={AppColors.teal}
@@ -83,239 +138,407 @@ const CompareProgress = () => {
               borderWidth: 1,
             }}
           />
-          {/* STEPS */}
-          <View style={styles.separator} />
-          <Text
-            style={[
-              AppFontStyle.SEMI_BOLD_15,
-              {
-                marginVertical: 10,
-                color: AppColors.accentText,
-              },
-            ]}>
-            You walked <Text style={{color: AppColors.teal}}>234</Text> more
-            steps on 8th Feb
-          </Text>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              8th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              4568/5000
-            </Text>
-          </View>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              17th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              4200/5000
-            </Text>
-          </View>
+          {startDate && endDate && startComparison && endComparison && (
+            <>
+              {/* <Text
+                style={[
+                  AppFontStyle.SEMI_BOLD_15,
+                  {
+                    marginVertical: 10,
+                    color: AppColors.accentText,
+                  },
+                ]}>
+                You walked <Text style={{color: AppColors.teal}}>234</Text> more
+                steps on 8th Feb
+              </Text>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  4568/5000
+                </Text>
+              </View>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  4200/5000
+                </Text>
+              </View> */}
 
-          {/* WATER INTAKE */}
-          <View style={styles.separator} />
-          <Text
-            style={[
-              AppFontStyle.SEMI_BOLD_15,
-              {
-                marginVertical: 10,
-                color: AppColors.accentText,
-              },
-            ]}>
-            You had <Text style={{color: AppColors.teal}}>4 more glasses</Text>{' '}
-            of water on 17th Feb
-          </Text>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              8th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              8/8 Cups
-            </Text>
-          </View>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              17th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              4/8 Cups
-            </Text>
-          </View>
+              {/* WATER INTAKE */}
+              <View style={styles.separator} />
 
-          {/* CALORIES BURNED */}
-          <View style={styles.separator} />
-          <Text
-            style={[
-              AppFontStyle.SEMI_BOLD_15,
-              {
-                marginVertical: 10,
-                color: AppColors.accentText,
-              },
-            ]}>
-            You burned{' '}
-            <Text style={{color: AppColors.teal}}>478 more calories</Text> on
-            17th Feb
-          </Text>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              8th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              3344 kcal
-            </Text>
-          </View>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              17th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              3244 kcal
-            </Text>
-          </View>
+              {startComparison.waterIntakeHistory.waterIntake >
+              endComparison.waterIntakeHistory.waterIntake ? (
+                <Text
+                  style={[
+                    AppFontStyle.SEMI_BOLD_15,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  You had{' '}
+                  <Text style={{color: AppColors.teal}}>
+                    {startComparison.waterIntakeHistory.waterIntake} more
+                    glasses
+                  </Text>{' '}
+                  of water on {startDate}
+                </Text>
+              ) : (
+                <Text
+                  style={[
+                    AppFontStyle.SEMI_BOLD_15,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  You had{' '}
+                  <Text style={{color: AppColors.teal}}>
+                    {endComparison.waterIntakeHistory.waterIntake} more glasses
+                  </Text>{' '}
+                  of water on {endDate}
+                </Text>
+              )}
 
-          {/* CALORIES CONSUMED */}
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startComparison &&
+                    startComparison.waterIntakeHistory.waterIntake}
+                  /8 Cups
+                </Text>
+              </View>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endComparison &&
+                    endComparison.waterIntakeHistory.waterIntake}
+                  /8 Cups
+                </Text>
+              </View>
+
+              {/* CALORIES CONSUMED */}
+              <View style={styles.separator} />
+              {startComparison.waterIntakeHistory.waterIntake >
+              endComparison.waterIntakeHistory.waterIntake ? (
+                <Text
+                  style={[
+                    AppFontStyle.SEMI_BOLD_15,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  You consumed{' '}
+                  <Text style={{color: AppColors.teal}}>
+                    {startComparison.calorieHistory.caloriesConsumed.toFixed(0)}{' '}
+                    more calories
+                  </Text>{' '}
+                  on {startDate}
+                </Text>
+              ) : (
+                <Text
+                  style={[
+                    AppFontStyle.SEMI_BOLD_15,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  You consumed{' '}
+                  <Text style={{color: AppColors.teal}}>
+                    {endComparison.calorieHistory.caloriesConsumed.toFixed(0)}{' '}
+                    more calories
+                  </Text>{' '}
+                  on {endDate}
+                </Text>
+              )}
+
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startComparison.calorieHistory.caloriesConsumed} kcal
+                </Text>
+              </View>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endComparison.calorieHistory.caloriesConsumed.toFixed(2)}{' '}
+                  kcal
+                </Text>
+              </View>
+
+              {/* PROTEINS */}
+              <View style={styles.separator} />
+              <Text
+                style={[
+                  AppFontStyle.SEMI_BOLD_15,
+                  {
+                    marginVertical: 10,
+                    color: AppColors.accentText,
+                  },
+                ]}>
+                Proteins
+              </Text>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startComparison.nutrientHistory.protein.toFixed(2)} g
+                </Text>
+              </View>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endComparison.nutrientHistory.protein.toFixed(2)} g
+                </Text>
+              </View>
+
+              {/* CARBOHYDRATES */}
+              <View style={styles.separator} />
+              <Text
+                style={[
+                  AppFontStyle.SEMI_BOLD_15,
+                  {
+                    marginVertical: 10,
+                    color: AppColors.accentText,
+                  },
+                ]}>
+                Carbohydrates
+              </Text>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startComparison.nutrientHistory.carbs.toFixed(2)} g
+                </Text>
+              </View>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endComparison.nutrientHistory.carbs.toFixed(2)} g
+                </Text>
+              </View>
+
+              {/* Fats */}
+              <View style={styles.separator} />
+              <Text
+                style={[
+                  AppFontStyle.SEMI_BOLD_15,
+                  {
+                    marginVertical: 10,
+                    color: AppColors.accentText,
+                  },
+                ]}>
+                Fats
+              </Text>
+
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {startComparison.nutrientHistory.fats.toFixed(2)} g
+                </Text>
+              </View>
+              <View style={styleSheet.rowContainer}>
+                <Text
+                  style={[
+                    AppFontStyle.MEDIUM_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endDate}
+                </Text>
+                <Text
+                  style={[
+                    AppFontStyle.BOLD_12,
+                    {
+                      marginVertical: 10,
+                      color: AppColors.accentText,
+                    },
+                  ]}>
+                  {endComparison.nutrientHistory.fats.toFixed(2)} g
+                </Text>
+              </View>
+            </>
+          )}
           <View style={styles.separator} />
-          <Text
-            style={[
-              AppFontStyle.SEMI_BOLD_15,
-              {
-                marginVertical: 10,
-                color: AppColors.accentText,
-              },
-            ]}>
-            You consumed{' '}
-            <Text style={{color: AppColors.teal}}>478 more calories</Text> on
-            17th Feb
-          </Text>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              8th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              3344 kcal
-            </Text>
-          </View>
-          <View style={styleSheet.rowContainer}>
-            <Text
-              style={[
-                AppFontStyle.MEDIUM_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              17th Feb
-            </Text>
-            <Text
-              style={[
-                AppFontStyle.BOLD_12,
-                {
-                  marginVertical: 10,
-                  color: AppColors.accentText,
-                },
-              ]}>
-              3244 kcal
-            </Text>
-          </View>
         </>
       )}
     </View>

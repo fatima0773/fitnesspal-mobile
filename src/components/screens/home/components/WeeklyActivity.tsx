@@ -1,79 +1,109 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
-import {StyleSheet, Text, View} from 'react-native';
+import {LogBox, StyleSheet, Text, View} from 'react-native';
 import {AppColors} from '../../../../utility/AppColors';
 import {AppFontStyle} from '../../../../styles/AppFontStyle';
 import {BarChart} from 'react-native-chart-kit';
-const WeeklyActivity = () => {
-  const chartConfig = {
-    fillShadowGradientFrom: AppColors.accentText,
-    fillShadowGradientFromOpacity: 1,
-    fillShadowGradientTo: AppColors.accentText,
-    fillShadowGradientToOpacity: 1,
-    backgroundGradientFrom: 'white',
-    backgroundGradientFromOpacity: 0,
-    backgroundGradientTo: 'white',
-    backgroundGradientToOpacity: 0.5,
-    color: (opacity = 1) => AppColors.accentText,
-    strokeWidth: 2,
-    barPercentage: 0.5,
-    useShadowColorFromDataset: false,
-    fillShadowGradient: AppColors.accentText,
-    fillShadowGradientOpacity: 10,
-    barColor: AppColors.accentColor,
-    barRadius: 5,
-    propsForBackgroundLines: {
-      strokeWidth: 0,
-    },
-    propsForLabels: {
-      fontFamily: 'Montserrat-Regular',
-    },
+import {useEffect, useState} from 'react';
+import storage from '../../../../utility/Storage';
+import axios from 'axios';
+const WeeklyActivity = (props: any) => {
+  const [userId, setUserId] = useState('');
+  const [weeklyWaterIntake, setWeeklyWaterIntake] = useState(0);
+  const [weeklyCalories, setWeeklyCalories] = useState(0);
+
+  useEffect(() => {
+    LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+    fetchUserId();
+  }, [userId]);
+
+  const fetchUserId = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    setUserId(auth.userId);
   };
-  const data = {
-    labels: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
-    datasets: [
-      {
-        data: [
-          19 / 100,
-          45 / 100,
-          28 / 100,
-          80 / 100,
-          99 / 100,
-          43 / 100,
-          34 / 100,
-        ],
+
+  useEffect(() => {
+    getWeeklyWaterIntake();
+    getWeeklyCaloriesConsumed();
+  }, [userId, weeklyWaterIntake, weeklyCalories]);
+
+  const getWeeklyWaterIntake = async () => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/nutritional-profile/get-daily-water-intake/${userId}`,
+      headers: {
+        'Content-Type': 'application/json',
       },
-    ],
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        setWeeklyWaterIntake(response.data.data.waterIntake);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
   };
+
+  const getWeeklyCaloriesConsumed = async () => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/nutritional-profile/get-weekly-calories-consumed/${userId}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    try {
+      const response = await axios.request(config);
+      if (response) {
+        console.log(response.data.totalCaloriesConsumed.toFixed(0));
+        setWeeklyCalories(response.data.data.totalCaloriesConsumed.toFixed(0));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <View style={styles.progressContainer}>
       <View
         style={{
-          // alignItems: 'center',
           justifyContent: 'space-evenly',
         }}>
         <View>
-          <Text style={AppFontStyle.MEDIUM_14}>Calories</Text>
-          <Text style={AppFontStyle.SEMI_BOLD_20}>Calories</Text>
+          <Text style={AppFontStyle.MEDIUM_14}>Calories Consumed</Text>
+          <View style={styles.rowContainer}>
+            <Text style={[AppFontStyle.SEMI_BOLD_18]}>Average Calories</Text>
+            <Text style={[AppFontStyle.SEMI_BOLD_20, {color: AppColors.teal}]}>
+              {weeklyCalories / 7} kcal
+            </Text>
+          </View>
         </View>
 
-        <View>
-          <Text style={AppFontStyle.MEDIUM_14}>Time</Text>
-          <Text style={AppFontStyle.SEMI_BOLD_20}>1:03:30</Text>
+        <View style={{marginTop: 30}}>
+          <Text style={AppFontStyle.MEDIUM_14}>Water Intake</Text>
+          <View style={styles.rowContainer}>
+            <Text style={[AppFontStyle.SEMI_BOLD_18]}>
+              Average Water Intake
+            </Text>
+            <Text style={[AppFontStyle.SEMI_BOLD_20, {color: AppColors.teal}]}>
+              {(weeklyWaterIntake / 7).toFixed(2)} cups
+            </Text>
+          </View>
         </View>
       </View>
-      <BarChart
-        showBarTops={false}
-        style={{}}
-        data={data}
-        width={300}
-        height={200}
-        chartConfig={chartConfig}
-        withInnerLines={true}
-        verticalLabelRotation={0}
-        segments={-1}
-      />
     </View>
   );
 };
@@ -83,6 +113,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+    width: '100%',
   },
   progressContainer: {
     backgroundColor: AppColors.white,

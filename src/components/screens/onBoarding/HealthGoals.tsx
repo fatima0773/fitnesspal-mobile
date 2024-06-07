@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
@@ -68,8 +69,48 @@ const HealthGoals = (props: any) => {
     'Please fill all the required fields',
   );
 
-  const finishRegistration = async () => {
-    setIsTargetWeightModal(false);
+  const validateTargetWeight = () => {
+    const tWeight = parseInt(targetWeight, 10);
+    // const userData = localStorage.getItem('userData');
+    // const user = userData ? JSON.parse(userData) : {};
+    // const currentHeight = parseInt(height, 10);
+    const currentHeight = height;
+
+    // const targetWeight = parseInt(weight);
+    const minimumIdealWeight =
+      18.5 * (currentHeight / 100) * (currentHeight / 100);
+    const maximumIdealWeight =
+      24.9 * (currentHeight / 100) * (currentHeight / 100);
+
+    if (weight && isNaN(tWeight)) {
+      setShowError(true);
+      setErrorMessage('Weight must be a positive number');
+      console.log('Weight must be a positive number');
+    }
+
+    if (
+      weight &&
+      (tWeight < minimumIdealWeight || tWeight > maximumIdealWeight)
+    ) {
+      let errMsg = `Weight must be between ${minimumIdealWeight.toFixed(
+        2,
+      )} and ${maximumIdealWeight.toFixed(2)}`;
+
+      setShowError(true);
+      setErrorMessage(errMsg);
+      console.log(
+        '⁠Weight must be between',
+        minimumIdealWeight,
+        'and',
+        maximumIdealWeight,
+      );
+    } else {
+      setShowError(false);
+      register();
+    }
+  };
+
+  const register = async () => {
     try {
       // Send a request to send OTP
       const healthProfileResponse = await createHealthProfile({
@@ -86,18 +127,14 @@ const HealthGoals = (props: any) => {
         gender,
         isPound,
       });
-
       const nutritionalProfileResponse = await createNutritionalProfile();
-
       const updateProfileResponse = await updateAgeAndGender({
         age,
         gender,
       });
-
       // Extract message and status from the healthProfileResponse
       const healthProfileMessage = healthProfileResponse.data.message;
       const healthProfileStatus = healthProfileResponse.status;
-
       if (healthProfileStatus === 200) {
         // If sending OTP is successful
         setShowError(false);
@@ -112,6 +149,52 @@ const HealthGoals = (props: any) => {
       setShowError(true);
       setErrorMessage(error.healthProfileResponse.data.message);
     }
+  };
+  const finishRegistration = async () => {
+    setIsTargetWeightModal(false);
+    validateTargetWeight();
+    // try {
+    //   // Send a request to send OTP
+    //   const healthProfileResponse = await createHealthProfile({
+    //     weight,
+    //     height,
+    //     bmi,
+    //     diseases,
+    //     disabilities,
+    //     subdiseases,
+    //     subdisabilities,
+    //     targetWeight: parseInt(targetWeight, 10),
+    //     toningAreas: [''],
+    //     age,
+    //     gender,
+    //     isPound,
+    //   });
+
+    //   const nutritionalProfileResponse = await createNutritionalProfile();
+
+    //   const updateProfileResponse = await updateAgeAndGender({
+    //     age,
+    //     gender,
+    //   });
+
+    //   // Extract message and status from the healthProfileResponse
+    //   const healthProfileMessage = healthProfileResponse.data.message;
+    //   const healthProfileStatus = healthProfileResponse.status;
+
+    //   if (healthProfileStatus === 200) {
+    //     // If sending OTP is successful
+    //     setShowError(false);
+    //     props.navigation.navigate('Tab', {
+    //       screen: 'Home',
+    //     });
+    //   } else {
+    //     setShowError(true);
+    //     setErrorMessage(healthProfileMessage);
+    //   }
+    // } catch (error: any) {
+    //   setShowError(true);
+    //   setErrorMessage(error.healthProfileResponse.data.message);
+    // }
   };
 
   return (
@@ -137,6 +220,29 @@ const HealthGoals = (props: any) => {
             Define your path to better health with personalized goals,
             empowering you to achieve optimal wellness and fitness
           </Text>
+          {showError && (
+            <View
+              style={{
+                backgroundColor: AppColors.errorMsgBgc,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 8,
+                padding: 10,
+                marginVertical: 10,
+                width: '100%',
+              }}>
+              <Text
+                style={[
+                  AppFontStyle.SEMI_BOLD_12,
+                  {
+                    color: AppColors.errorMsgText,
+                    textAlign: 'center',
+                  },
+                ]}>
+                {errorMessage}
+              </Text>
+            </View>
+          )}
           <View style={styles.currentBmiContainer}>
             <TouchableOpacity
               style={styles.showAnalysisBtn}

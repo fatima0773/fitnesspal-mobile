@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
 import {
@@ -13,19 +14,84 @@ import {AppColors} from '../../../utility/AppColors';
 import {Text} from '@rneui/base';
 import {AppFontStyle} from '../../../styles/AppFontStyle';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import MenuPageHeader from './components/MenuPageHeader';
+import storage from '../../../utility/Storage';
+import axios from 'axios';
 const AppMenu = (props: any) => {
+  const [userId, setUserId] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
-  }, []);
+    fetchUserId();
+  }, [userId]);
+
+  const fetchUserId = async () => {
+    const auth = await storage.load({
+      key: 'authState',
+      autoSync: true,
+      syncInBackground: true,
+    });
+    setUserId(auth.userId);
+    getUser();
+    getHealthProfile();
+  };
+
+  const getUser = async () => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/user/${userId}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        console.log(JSON.stringify(response.data.user.age));
+        setAge(response.data.user.age);
+        setName(response.data.user.name);
+        setEmail(response.data.user.email);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
+  };
+
+  const getHealthProfile = async () => {
+    let data = '';
+
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `http://localhost:8080/health-profile/get-profile/${userId}`,
+      headers: {},
+      data: data,
+    };
+
+    async function makeRequest() {
+      try {
+        const response = await axios.request(config);
+        setWeight(response.data.weight);
+        setHeight(response.data.height);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    makeRequest();
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -34,6 +100,8 @@ const AppMenu = (props: any) => {
         showsVerticalScrollIndicator={false}>
         <View style={[styleSheet.container, {padding: 15}]}>
           <MenuPageHeader
+            email={email}
+            name={name}
             pressHandler={() => props.navigation.navigate('EditProfile')}
           />
 
@@ -45,7 +113,7 @@ const AppMenu = (props: any) => {
                   AppFontStyle.BOLD_20,
                   {color: AppColors.purple, width: '100%', textAlign: 'center'},
                 ]}>
-                48 kgs
+                {weight} kgs
               </Text>
               <Text
                 style={[
@@ -66,7 +134,7 @@ const AppMenu = (props: any) => {
                   AppFontStyle.BOLD_20,
                   {color: AppColors.purple, width: '100%', textAlign: 'center'},
                 ]}>
-                180 cm
+                {height} cm
               </Text>
               <Text
                 style={[
@@ -87,7 +155,7 @@ const AppMenu = (props: any) => {
                   AppFontStyle.BOLD_20,
                   {color: AppColors.purple, width: '100%', textAlign: 'center'},
                 ]}>
-                22 yrs
+                {age} yrs
               </Text>
               <Text
                 style={[
@@ -105,8 +173,33 @@ const AppMenu = (props: any) => {
           </View>
 
           {/* menu options */}
+          {/* wellness facility locator */}
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              props.navigation.navigate('WellnessFacilityLocator');
+            }}>
+            <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+              <MaterialCommunityIcons
+                name="google-maps"
+                color={AppColors.teal}
+                size={20}
+              />
+              <Text
+                style={[
+                  AppFontStyle.MEDIUM_16,
+                  {color: AppColors.accentText, marginHorizontal: 10},
+                ]}>
+                Wellness Facility Locator
+              </Text>
+            </View>
+            <AntDesign name="right" size={20} color={AppColors.accentText} />
+          </TouchableOpacity>
+
           {/* progress insights */}
-          <TouchableOpacity style={styles.menuOption}>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => props.navigation.navigate('ProgressInsights')}>
             <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
               <MaterialCommunityIcons
                 name="progress-clock"
@@ -136,21 +229,6 @@ const AppMenu = (props: any) => {
                   {color: AppColors.accentText, marginHorizontal: 10},
                 ]}>
                 Subscription
-              </Text>
-            </View>
-            <AntDesign name="right" size={20} color={AppColors.accentText} />
-          </TouchableOpacity>
-
-          {/* notification */}
-          <TouchableOpacity style={styles.menuOption}>
-            <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-              <Ionicons name="notifications" color={AppColors.teal} size={20} />
-              <Text
-                style={[
-                  AppFontStyle.MEDIUM_16,
-                  {color: AppColors.accentText, marginHorizontal: 10},
-                ]}>
-                Notifications
               </Text>
             </View>
             <AntDesign name="right" size={20} color={AppColors.accentText} />

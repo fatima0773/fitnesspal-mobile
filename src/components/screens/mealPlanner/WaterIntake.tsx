@@ -297,11 +297,11 @@ const WaterIntake = () => {
                   AppFontStyle.BOLD_19,
                   {
                     color: AppColors.white,
-                    textAlign: 'right',
+                    textAlign: 'center',
                     marginTop: 10,
                   },
                 ]}>
-                {weeklyWaterIntake / 7} cups per day
+                {(weeklyWaterIntake / 7).toFixed(2)} cups per day
               </Text>
             </LinearGradient>
           </View>

@@ -7,6 +7,7 @@ import {Text} from 'react-native';
 import {AppColors} from '../../../../utility/AppColors';
 import {AppFontStyle} from '../../../../styles/AppFontStyle';
 import storage from '../../../../utility/Storage';
+import React from 'react';
 
 const HomeHeader = (props: any) => {
   return (

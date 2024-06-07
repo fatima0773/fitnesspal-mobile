@@ -8,6 +8,7 @@ import BlackButton from '../common/BlackButton';
 import {AppColors} from '../../utility/AppColors';
 // import {useEffect, useState} from 'react';
 import storage from '../../utility/Storage';
+import React from 'react';
 
 const GetStarted = (props: any) => {
   return (

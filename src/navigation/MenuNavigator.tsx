@@ -5,6 +5,7 @@ import EditProfile from '../components/screens/menu/EditProfile';
 import FreePlan from '../components/screens/menu/FreePlan';
 import PremiumPlan from '../components/screens/menu/PremiumPlan';
 import AddNewCard from '../components/screens/menu/AddNewCard';
+import WellnessFacilityLocator from '../components/screens/wellnessFacilityLocator/WellnessFacilityLocator';
 const Stack = createStackNavigator();
 
 const MenuNavigator: React.FC = () => {
@@ -33,6 +34,11 @@ const MenuNavigator: React.FC = () => {
       <Stack.Screen
         name="AddNewCard"
         component={AddNewCard}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="WellnessFacilityLocator"
+        component={WellnessFacilityLocator}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

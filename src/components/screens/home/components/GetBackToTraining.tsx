@@ -1,37 +1,41 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {AppColors} from '../../../../utility/AppColors';
 import {AppFontStyle} from '../../../../styles/AppFontStyle';
 import {AppImages} from '../../../../utility/AppImages';
-const GetBackToTraining = () => {
+const GetBackToTraining = (props: any) => {
   return (
-    <View style={styles.progressContainer}>
+    <TouchableOpacity
+      style={styles.progressContainer}
+      onPress={props.pressHandler}>
       <View
         style={{
           justifyContent: 'space-evenly',
+          flex: 1,
         }}>
         <View>
-          <Text style={AppFontStyle.MEDIUM_16}>Today’s Workout</Text>
+          <Text
+            style={[AppFontStyle.MEDIUM_14, {color: AppColors.primaryText}]}>
+            Plan Smart, Eat Healthy:
+          </Text>
         </View>
-
         <View>
           <Text
             style={[
-              AppFontStyle.MEDIUM_14,
-              {marginTop: 20, marginBottom: 5, color: AppColors.lightGrey},
+              AppFontStyle.SEMI_BOLD_15,
+              {color: AppColors.purple, marginTop: 10},
             ]}>
-            Total Time
+            Your Personal Meal Planner for a Balanced Life
           </Text>
-          <Text style={AppFontStyle.SEMI_BOLD_20}>1hr 30 min</Text>
         </View>
       </View>
       <Image
-        source={AppImages.DRINKING}
+        source={AppImages.RUNNING}
         style={styles.image}
         resizeMode="contain"
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -60,6 +64,7 @@ const styles = StyleSheet.create({
   image: {
     width: 80,
     height: 90,
+    marginLeft: 10,
   },
 });
 

@@ -47,14 +47,18 @@ const GenderAnalysis = (props: any) => {
     } else {
       setShowError(false);
       if (weight && height) {
-        const weightInKg = isKg
-          ? parseFloat(weight)
-          : parseFloat(weight) * 0.453592;
-        const heightInMeter = isKg
-          ? parseFloat(height) / 100
-          : parseFloat(height) * 0.3048;
-        const bmiValue = weightInKg / (heightInMeter * heightInMeter);
-        // setBMI(bmiValue);
+        let bmiValue;
+        if (!isKg) {
+          let heightInMeter = parseFloat(height) / 100;
+          bmiValue = parseFloat(weight) / (heightInMeter * heightInMeter);
+        } else {
+          const weightInKilograms = parseFloat(weight) * 0.453592;
+          console.log(weightInKilograms);
+          let heightInMeter = parseFloat(height) * 0.3048;
+          console.log(heightInMeter);
+          bmiValue = weightInKilograms / (heightInMeter * heightInMeter);
+        }
+
         props.navigation.navigate('DiseasesAndDisabilities', {
           gender: gender === 0 ? 'Male' : gender === 1 ? 'Female' : 'Neutral',
           age: parseInt(age, 10),
@@ -198,7 +202,7 @@ const GenderAnalysis = (props: any) => {
           <View style={[styles.inputContainer, {height: 40, zIndex: -100}]}>
             <TextInput
               style={[styles.input, AppFontStyle.REGULAR_15, {zIndex: -100}]}
-              placeholder={'Enter Weight'}
+              placeholder={'Enter Height'}
               placeholderTextColor={AppColors.lightGrey}
               defaultValue={height}
               onChangeText={setHeight}

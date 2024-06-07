@@ -1,5 +1,17 @@
-import React from 'react';
-import {Button, Platform, SafeAreaView, StyleSheet, View} from 'react-native';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable react-native/no-inline-styles */
+import React, {useEffect} from 'react';
+import {
+  Button,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   isSensorWorking,
   isStepCountingSupported,
@@ -11,6 +23,10 @@ import {
 import {getBodySensorPermission, getStepCounterPermission} from './permission';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import LogCat from './LogCat';
+import {AppColors} from '../../../utility/AppColors';
+import {AppFontStyle} from '../../../styles/AppFontStyle';
+import LogoHeader from '../../common/LogoHeader';
+import {FULL_HEIGHT} from '../../../utility/Constant';
 
 type SensorType<T = typeof Platform.OS> = T extends 'ios'
   ? 'CMPedometer'
@@ -51,7 +67,7 @@ type AdditionalInfo = Partial<ParsedStepCountData>;
  * @returns {React.ReactComponentElement} - Returns Application Component.
  * @example
  */
-export default function StepTracker(): JSX.Element {
+export default function StepTracker(props: any): JSX.Element {
   const [loaded, setLoaded] = React.useState(false);
   const [supported, setSupported] = React.useState(false);
   const [granted, setGranted] = React.useState(false);
@@ -99,6 +115,7 @@ export default function StepTracker(): JSX.Element {
     setAdditionalInfo(initState);
     stopStepCounterUpdate();
     setLoaded(false);
+    console.log(initState);
   };
 
   /**
@@ -125,7 +142,7 @@ export default function StepTracker(): JSX.Element {
    * This effect runs when the component is first mounted
    * and then runs again when the `count` variable changes.
    */
-  React.useEffect(() => {
+  useEffect(() => {
     isPedometerSupported();
     return () => {
       stopStepCounter();
@@ -137,7 +154,7 @@ export default function StepTracker(): JSX.Element {
    * It calls the isPedometerSupported function and returns a
    * function that stops the step counter.
    */
-  React.useEffect(() => {
+  useEffect(() => {
     console.debug(`🚀 stepCounter ${supported ? '' : 'not'} supported`);
     console.debug(`🚀 user ${granted ? 'granted' : 'denied'} stepCounter`);
     startStepCounter();
@@ -145,48 +162,155 @@ export default function StepTracker(): JSX.Element {
 
   return (
     <SafeAreaView>
-      <View style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{alignItems: 'center'}}>
+        <LogoHeader />
+        <Text style={[AppFontStyle.SEMI_BOLD_28, {marginBottom: 20}]}>
+          Step Tracker
+        </Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+            marginBottom: 20,
+            marginTop: 10,
+          }}>
+          <View>
+            <Text style={[AppFontStyle.SEMI_BOLD_20]}>Good day!</Text>
+            <Text
+              style={[
+                AppFontStyle.MEDIUM_15,
+                {color: AppColors.secondaryText},
+              ]}>
+              Are we ready to get going?
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => props.navigation.navigate('Tab')}
+            style={{
+              backgroundColor: AppColors.black,
+              padding: 10,
+              borderRadius: 10,
+            }}>
+            <Text style={[AppFontStyle.BOLD_14, {color: AppColors.white}]}>
+              View Insights
+            </Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.indicator}>
           <CircularProgress
             value={stepCount}
             maxValue={10000}
-            valueSuffix="steps"
+            valueSuffix=" Steps"
             progressValueFontSize={42}
             radius={165}
-            activeStrokeColor="#cdd27e"
-            inActiveStrokeColor="#4c6394"
+            activeStrokeColor={AppColors.purple}
+            inActiveStrokeColor={AppColors.lightPurple}
             inActiveStrokeOpacity={0.5}
             inActiveStrokeWidth={40}
-            subtitle={
-              additionalInfo.calories === '0 kCal'
-                ? ''
-                : additionalInfo.calories
-            }
+            // subtitle={
+            //   additionalInfo.calories === '0 kCal'
+            //     ? ''
+            //     : additionalInfo.calories
+            // }
             activeStrokeWidth={40}
             title="Step Count"
             titleColor="#555"
-            titleFontSize={30}
-            titleStyle={{fontWeight: 'bold'}}
+            titleFontSize={20}
+            titleStyle={AppFontStyle.BOLD_18}
           />
         </View>
         <View style={styles.bGroup}>
-          <Button title="START" onPress={startStepCounter} />
-          <Button title="RESTART" onPress={forceUseAnotherSensor} />
-          <Button title="STOP" onPress={stopStepCounter} />
+          <TouchableOpacity
+            onPress={startStepCounter}
+            style={{
+              backgroundColor: AppColors.black,
+              padding: 10,
+              borderRadius: 10,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              margin: 5,
+            }}>
+            <Text style={[AppFontStyle.BOLD_14, {color: AppColors.white}]}>
+              Start
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={forceUseAnotherSensor}
+            style={{
+              backgroundColor: AppColors.black,
+              padding: 10,
+              borderRadius: 10,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              margin: 5,
+            }}>
+            <Text style={[AppFontStyle.BOLD_14, {color: AppColors.white}]}>
+              Restart
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={stopStepCounter}
+            style={{
+              backgroundColor: AppColors.black,
+              padding: 10,
+              borderRadius: 10,
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              margin: 5,
+            }}>
+            <Text style={[AppFontStyle.BOLD_14, {color: AppColors.white}]}>
+              Stop
+            </Text>
+          </TouchableOpacity>
         </View>
-        <LogCat triggered={loaded} />
-      </View>
+        {/* <View style={styles.shadowContainer}>
+          <View>
+            <Text
+              style={[
+                AppFontStyle.MEDIUM_16,
+                {color: AppColors.primaryText, marginBottom: 10},
+              ]}>
+              Your Daily Target
+            </Text>
+            <Text style={[AppFontStyle.BOLD_20, {color: AppColors.purple}]}>
+              10000
+            </Text>
+          </View>
+          <TouchableOpacity
+            // onPress={() => props.navigation.navigate('Tab')}
+            style={{
+              backgroundColor: AppColors.purple,
+              paddingHorizontal: 20,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text style={[AppFontStyle.BOLD_15, {color: AppColors.white}]}>
+              Set Step Goal
+            </Text>
+          </TouchableOpacity>
+        </View> */}
+        {/* <LogCat triggered={loaded} /> */}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  /** Styling the container. */
+  button: {backgroundColor: 'red'},
   container: {
     height: '100%',
-    alignItems: 'center',
+    // alignItems: 'center',
     padding: 20,
-    backgroundColor: '#2f3774',
+    backgroundColor: AppColors.white,
+    minHeight: FULL_HEIGHT,
   },
   /** Styling the circular indicator. */
   indicator: {
@@ -200,5 +324,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     display: 'flex',
     marginVertical: 8,
+  },
+  shadowContainer: {
+    backgroundColor: AppColors.white,
+    shadowColor: AppColors.transparentBlack07,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+    borderRadius: 10,
+    marginTop: 15,
+    marginEnd: 10,
+    padding: 15,
+    flex: 1,
+    width: '100%',
+    margin: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

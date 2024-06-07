@@ -3,6 +3,7 @@ import {Text} from '@rneui/base';
 import {StyleSheet, TouchableOpacity} from 'react-native';
 import {AppColors} from '../../utility/AppColors';
 import {AppFontStyle} from '../../styles/AppFontStyle';
+import React from 'react';
 
 const BlackButton = (props: any) => {
   return (

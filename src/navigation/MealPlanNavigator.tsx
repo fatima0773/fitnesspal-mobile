@@ -6,6 +6,7 @@ import Allergies from '../components/screens/mealPlanner/Allergies';
 import MealPlan from '../components/screens/mealPlanner/MealPlan';
 import LoadingScreen from '../components/screens/mealPlanner/LoadingScreen';
 import WaterIntake from '../components/screens/mealPlanner/WaterIntake';
+import CalorieTracker from '../components/screens/mealPlanner/CalorieTracker';
 const Stack = createStackNavigator();
 
 const MealPlanNavigator: React.FC = () => {
@@ -39,6 +40,11 @@ const MealPlanNavigator: React.FC = () => {
       <Stack.Screen
         name="WaterIntake"
         component={WaterIntake}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="CalorieTracker"
+        component={CalorieTracker}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to show nearby wellness facilities.</string>
 	<key>CFBundleDisplayName</key>
 	<string>FitnessPalMobile</string>
 	<key>CFBundleExecutable</key>
